@@ -81,6 +81,23 @@ class Bottleneck(nn.Module):
         return lin_out_re
 
 
+class CCMBlock(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.v = torch.tensor([1, -0.5+1j*0.5*np.sqrt(3), -0.5 - 1j*0.5*np.sqrt(3)]).unsqueeze(-1)
+        self.m = 2
+        self.n = 1
+
+    
+    def forward(self, x):
+        b,c,t,f = x.shape
+        x1= torch.chunk(x, 3, 1)
+        x2 = torch.stack(x1, dim=-1)
+        x3 = torch.matmul( x2.type_as(self.v),self.v).squeeze(-1)
+        x4 = x3.reshape(b, self.m+1, self.n*2+1, t,f)
+
+        return 0
+    
 class deepvqe(nn.Module):
     def __init__(self, near_in_channel=[2, 64, 128], far_in_channel=[2, 32, 128], kernel_size=[4, 3], stride=[1, 2]) -> None:
         super().__init__()
@@ -167,6 +184,10 @@ class deepvqe(nn.Module):
 
 
 if __name__ == "__main__":
+
+    sig = torch.randn(2,27,1,4)
+    ccm = CCMBlock()
+    out = ccm(sig)
     sig = torch.randn(2, 2, 1, 240)
     net = deepvqe()
     out3 = net(sig)
