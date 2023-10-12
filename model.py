@@ -8,7 +8,6 @@ import numpy as np
 class AlignBlock(nn.Module):
     def __init__(self,in_ch=128,h=32, max_delay_block=32) -> None:
         super().__init__()
-        # self.p_dim = pdim
         self.h = h
         self.max_delay = max_delay_block
         self.pointwise_conv1 = nn.Conv2d(in_ch,h, kernel_size=(1,1) )
@@ -17,7 +16,7 @@ class AlignBlock(nn.Module):
         self.neg_inf = -10e12
 
     def forward(self, xm, xf):
-        # b,c,t,f
+        # xm,xf: b,c,t,f
         b,c,t,f = xf.shape
         xm_1 = self.pointwise_conv1(xm)
         xf_1= self.pointwise_conv2(xf)
@@ -212,8 +211,10 @@ class deepvqe(nn.Module):
 
         far_1 = self.far_conv2_1(far)[...,:-self.padding[0],:]
         far_2 = self.far_conv2_2(far_1)[...,:-self.padding[0],:]
+        
         align_out = self.alignblock(x2,far_2)
         x2_conc = torch.cat((x2, align_out), 1)
+
         x3 = self.conv2_3(x2_conc)[...,:-self.padding[0],:]
         x4 = self.conv2_4(x3)[...,:-self.padding[0],:]
         x5 = self.conv2_5(x4)[...,:-self.padding[0],:]
